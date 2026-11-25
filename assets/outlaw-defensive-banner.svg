@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">OutLaw Rootkit — Defensive Research Brief</title>
+  <desc id="desc">A shield and magnifying glass symbolizing isolated, non-executing source review.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#100c19"/>
+      <stop offset="1" stop-color="#211334"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4a4ff"/>
+      <stop offset="1" stop-color="#8053e8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="320" rx="28" fill="url(#bg)"/>
+  <rect x="2" y="2" width="1196" height="316" rx="26" fill="none" stroke="#493568" stroke-width="2"/>
+  <g transform="translate(76 58)">
+    <path d="M94 3 166 30v61c0 54-34 91-72 111C56 182 22 145 22 91V30L94 3Z" fill="#211631" stroke="url(#accent)" stroke-width="8" stroke-linejoin="round"/>
+    <path d="m61 95 22 22 46-51" fill="none" stroke="#e8ddff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="152" cy="143" r="29" fill="#100c19" stroke="#f0a94a" stroke-width="8"/>
+    <path d="m173 164 25 25" fill="none" stroke="#f0a94a" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="330" y="133" fill="#f7f2ff" font-size="52" font-weight="700" letter-spacing="1.5">OUTLAW ROOTKIT</text>
+    <text x="333" y="184" fill="#c4a4ff" font-size="24" font-weight="700" letter-spacing="4">DEFENSIVE RESEARCH BRIEF</text>
+    <text x="333" y="230" fill="#c5bdcf" font-size="20">Isolated · non-executing · source review</text>
+  </g>
+  <path d="M1070 72v176" stroke="#493568" stroke-width="2"/>
+  <text x="1105" y="143" fill="#f0a94a" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" letter-spacing="2" transform="rotate(90 1105 143)">REVIEW SAFELY</text>
+</svg>
