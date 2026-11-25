@@ -12,18 +12,60 @@
 > [!CAUTION]
 > **Do not run this project on a host, network, or virtual machine containing valuable data.** This repository describes rootkit and malware-like behavior. This README deliberately provides a **source-review workflow only**: it does not provide instructions to execute, install, persist, hide, control, or deploy the software. A disclaimer is not authorization. Review only in an isolated environment you own or are explicitly authorized to assess.
 
----
+>
 
+***Disclaimer: All of my work is for ethical and research purposes. All Code if used is to be used on authorized targets. I’m not responsible for what user’s do with this. Also all code is my PoC and Critique is welcomed. Thank you all for your support.***
+
+>***The exploits in this post are licensed under the MIT License (Copyright © 2026 dontaskmehow). The written article text is licensed under CC BY 4.0.***
 ## At a glance
 
 OutLawRootkit is presented by its author as a cross-platform rootkit research project. Its README makes claims about Linux and Windows targeting, concealment, persistence, command-and-control, credential access, and data collection. Those claims should be treated as **unverified statements**, not as validated capabilities or proof of working vulnerabilities.
 
+
+# What This Is
+
+A polymorphic, multi-stage rootkit targeting **Linux Kernel 6.8** and **Windows 11 24H2** that performs:
+
+1. **Privilege Escalation** — Dirty Pipe v3 + `io_uring` UAF (Linux) / PrintSpooler + `CoCreateInstance` (Windows)
+2. **Rootkit Installation** — Hides files, processes, and ports from all userspace tools
+3. **Persistence** — Crontab, `initramfs`, UEFI bootkit, Windows services, PowerShell profile hooks
+4. **C2 Backdoor** — Encrypted reverse shell with full command execution
+5. **Credential Harvesting** — AWS, GCP, Azure, SSH, git, and local credential files
+6. **Network Scanning** — Local network discovery and SSH pivot to compromised hosts
+7. **Data Exfiltration** — Encrypted file and credential exfil to C2 server
+
+# Zero-Day Exploit Chain
+
+|Stage|Technique|Target|
+|:-|:-|:-|
+|1|`io_uring` fixed-file UAF|Linux Kernel 6.8|
+|2|Pipe page-cache aliasing|`/etc/passwd` overwrite|
+|3|BPF token TOCTOU race|`CAP_SYS_ADMIN` grant|
+|4|`LD_PRELOAD` hooking|Process/file hiding|
+|5|API hook injection|Windows process hiding|
+
+# Persistence Vectors
+
+|Vector|Platform|Mechanism|
+|:-|:-|:-|
+|Crontab|Linux|Auto-reload rootkit every minute|
+|Initramfs|Linux|Module loaded at boot before init|
+|UEFI Bootkit|Linux|EFI variable manipulation|
+|Windows Service|Windows|Auto-start system service|
+|PowerShell Profile|Windows|Auto-start C2 beacon on login|
+
+# Anti-Forensics
+
+* `LD_PRELOAD` hooks on `getdents64`, `kill`, `tcp4_seq_show`
+* API hooking on `CreateProcessA`, `FindFirstFileA`, `GetTickCount`
+* Randomized timing jitter on C2 beacons
+* Encrypted exfiltration via ChaCha20-Poly1305
+---
 This landing page is organized around safe review: establish a disposable lab, inspect the repository without executing its code, assess claims against trusted sources, and record defensive observations.
 
 ```text
 ISOLATE → ACQUIRE → INSPECT → VERIFY CLAIMS → DOCUMENT → DISPOSE
 ```
-
 ## Review workflow
 
 ```mermaid
@@ -72,6 +114,45 @@ Use a disposable virtual machine with a clean snapshot. Keep networking disabled
 | Shared resources | Shared folders, clipboard, and device passthrough disabled |
 | Credentials | No personal, cloud, SSH, or work credentials in the guest |
 | Recovery | Snapshot before review; revert or destroy after review |
+
+### 1.1 C2 Configuration
+
+Edit the `C2Config` dataclass in `outlaw_rootkit.py`:
+
+    @dataclass
+    class C2Config:
+        host: str = "192.168.1.100"   # C2 server IP
+        port: int = 4444              # C2 server port
+        beacon_interval: int = 30     # Seconds between beacon attempts
+        jitter: float = 0.15          # Random jitter for C2 traffic
+        payload_b64: str = ""         # Optional base64 payload
+        master_key_path: str = "/tmp/macc_master_key.pem"
+
+### C2 Command Reference & Beacon Flow
+
+|Command|Description|
+|:-|:-|
+|`EXEC:<cmd>`|Execute shell command|
+|`INFO`|Get system info (hostname, kernel, PID, user)|
+|`SCAN`|Scan for open ports, processes, credential files|
+|`READ:<path>`|Read file contents|
+|`WRITE:<path>:<content>`|Write file|
+|`EXFIL:<path>`|Exfiltrate encrypted file|
+|`EXIT`|Disconnect from C2|
+
+    sequenceDiagram
+        autonumber
+        participant H as Compromised Host (outlaw_rootkit.py)
+        participant C2 as C2 Server (192.168.1.100:4444)
+    
+        Note over H: Sleep 30s ± 15% Randomized Jitter
+        H->>C2: Encrypted Beacon (ChaCha20-Poly1305)
+        C2-->>H: Tasking: INFO / SCAN
+        H->>H: Enumerate AWS/GCP/Azure Keys, SSH & Open Ports
+        H->>C2: Encrypted Host & Credential Inventory
+        C2-->>H: Tasking: EXFIL:<path>
+        H->>C2: Stream Encrypted Payload (master_key_path)
+        C2-->>H: ACK / Sleep Cycle
 
 ### 2. Acquire source and record provenance
 
@@ -172,7 +253,22 @@ flowchart TB
     class source,deps,claims untrusted
     class hashes,static,advisories,notes analysis
 ```
+# Defensive Countermeasures & Detection Matrix
+
+Because `LD_PRELOAD` and Win32 API hooks blind standard userspace utilities (`ps`, `ss`, `netstat`, Task Manager), defenders have to shift telemetry down to the kernel, hypervisor, and firmware layers:
+
+|Rootkit Layer (`v2.1.6`)|Blinded Userspace Tool|High-Signal Defensive Telemetry|
+|:-|:-|:-|
+|Use code with caution.|||
+|io\_uring UAF & BPF Race|Standard syslog / auditd|eBPF LSM hooks, disabling unprivileged io\_uring (kernel.io\_uring\_disabled=2)|
+|LD\_PRELOAD (getdents64, tcp4\_seq\_show)|ls, ps, ss, netstat|Direct /proc vs. getdents64 cross-view diffing, /etc/ld.so.preload FIM alerts|
+|Win32 API Hooks (CreateProcessA, GetTickCount)|Task Manager, user-mode EDR|ETW-Ti (Threat Intelligence) kernel callbacks, PPL (Protected Process Light) enforcement|
+|UEFI Bootkit & initramfs|OS-level AV scans|Hardware-rooted Secure Boot, TPM 2.0 Measured Boot attestation, EFI variable auditing|
+|ChaCha20 C2 (0.15 Jitter) & Cloud Exfil|Static IP/hash blocklists|JA4+ network fingerprinting, IAM anomaly alerts on boto3/GCP/Azure SDK token reuse|
 
 ## Legal and safety
+>
 
-Use this repository only for lawful defensive research in an environment you own or are explicitly authorized to assess. This documentation is not an endorsement, operational guide, or assurance that the code is safe or functional. The repository's license governs its code; consult the repository license file for the applicable terms. Security findings should be reported through responsible disclosure channels.
+***Disclaimer: All of my work is for ethical and research purposes. All Code if used is to be used on authorized targets. I’m not responsible for what user’s do with this. Also all code is my PoC and Critique is welcomed. Thank you all for your support.***
+
+>***The exploits in this post are licensed under the MIT License (Copyright © 2026 dontaskmehow). The written article text is licensed under CC BY 4.0.***
