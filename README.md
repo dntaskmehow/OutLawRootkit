@@ -9,9 +9,6 @@
   <img alt="Use" src="https://img.shields.io/badge/use-defensive%20lab%20only-d97706?style=for-the-badge">
 </p>
 
-> [!CAUTION]
-> **Do not run this project on a host, network, or virtual machine containing valuable data.** This repository describes rootkit and malware-like behavior. This README deliberately provides a **source-review workflow only**: it does not provide instructions to execute, install, persist, hide, control, or deploy the software. A disclaimer is not authorization. Review only in an isolated environment you own or are explicitly authorized to assess.
-
 >
 
 ***Disclaimer: All of my work is for ethical and research purposes. All Code if used is to be used on authorized targets. I’m not responsible for what user’s do with this. Also all code is my PoC and Critique is welcomed. Thank you all for your support.***
