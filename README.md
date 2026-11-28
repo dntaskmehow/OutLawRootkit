@@ -1,6 +1,7 @@
 <p align="center">
-  <strong>OUTLAW ROOTKIT — DEFENSIVE RESEARCH BRIEF</strong><br>
-  <sub>Safe documentation for isolated, non-executing source review</sub>
+  <strong>Out𝐿awRootkit</strong><br>
+    <strong>A Polymorphic, Multi-Stage Rootkit</strong><br>
+  <sub>Targeting Linux Kernel 6.8 and Windows 11 24H2</sub>
 </p>
 
 <p align="center">
@@ -11,15 +12,16 @@
 
 >
 
-***Disclaimer: All of my work is for ethical and research purposes. All Code if used is to be used on authorized targets. I’m not responsible for what user’s do with this. Also all code is my PoC and Critique is welcomed. Thank you all for your support.***
+>
+> Disclaimer:
+> None of my work was coded with Ai or an Ai Agent. All of my work is for ethical and research purposes. All Code if used is to be used on authorized targets. I’m not responsible for what user’s do with this. Also all code is my PoC and Critique is welcomed. Thank you all for your support.
 
->***The exploits in this post are licensed under the MIT License (Copyright © 2026 dontaskmehow). The written article text is licensed under CC BY 4.0.***
-## At a glance
+> These Tools Are: Free for the community. Built from real work. Designed for authorized security testing
 
-OutLawRootkit is presented by its author as a cross-platform rootkit research project. Its README makes claims about Linux and Windows targeting, concealment, persistence, command-and-control, credential access, and data collection. Those claims should be treated as **unverified statements**, not as validated capabilities or proof of working vulnerabilities.
+> The exploits in this post are licensed under the MIT License (Copyright © 2026 dontaskmehow). The written article text is licensed under CC BY 4.0.
+---
 
-
-# What This Is
+# Out𝐿awRootkit v1.0
 
 A polymorphic, multi-stage rootkit targeting **Linux Kernel 6.8** and **Windows 11 24H2** that performs:
 
@@ -58,7 +60,6 @@ A polymorphic, multi-stage rootkit targeting **Linux Kernel 6.8** and **Windows 
 * Randomized timing jitter on C2 beacons
 * Encrypted exfiltration via ChaCha20-Poly1305
 ---
-This landing page is organized around safe review: establish a disposable lab, inspect the repository without executing its code, assess claims against trusted sources, and record defensive observations.
 
 ```text
 ISOLATE → ACQUIRE → INSPECT → VERIFY CLAIMS → DOCUMENT → DISPOSE
@@ -83,7 +84,7 @@ flowchart LR
     class X stop
 ```
 
-## Project claims and safe review focus
+## Project claims:
 
 | Area described by the project | Safe reviewer question | Defensive focus |
 |---|---|---|
